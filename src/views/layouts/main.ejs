@@ -1,40 +1,150 @@
 <!doctype html>
-<html>
+<html lang="id">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title><%= title || "PansaCloud" %></title>
 
+  <!-- Google Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Remixicon -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
 
+  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Toastr -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/public/css/style.css"/>
   <link rel="stylesheet" href="/public/css/extra.css"/>
 
+  <!-- jQuery + Toastr -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+  <script>
+    // Global toastr config
+    toastr.options = {
+      positionClass:"toast-bottom-right",
+      timeOut: 2200,
+      closeButton: true,
+      newestOnTop: true,
+      progressBar: true
+    };
+  </script>
 </head>
 
-<body class="min-h-screen bg-slate-950 text-slate-100" style="font-family:'Plus Jakarta Sans',sans-serif">
+<body class="pc-body">
+  <!-- Background decor -->
+  <div class="pc-bg">
+    <div class="pc-blob pc-blob-a"></div>
+    <div class="pc-blob pc-blob-b"></div>
+    <div class="pc-grid"></div>
+  </div>
+
+  <!-- Overlay Loading -->
   <%- include('../partials/overlay') %>
 
   <% if (!sessionUser) { %>
-    <div id="appMain"><%- body %></div>
+    <!-- AUTH / PUBLIC -->
+    <div id="appMain" class="pc-page">
+      <%- body %>
+    </div>
   <% } else { %>
-    <div class="min-h-screen flex">
+    <!-- APP -->
+    <div class="pc-shell">
+      <!-- Sidebar (desktop) -->
       <%- include('../partials/sidebar', { user: sessionUser }) %>
-      <main class="flex-1">
-        <div id="appMain"><%- body %></div>
+
+      <!-- Topbar (mobile) -->
+      <header class="pc-topbar md:hidden">
+        <div class="pc-topbar-inner">
+          <button id="pcToggleSidebar" class="pc-iconbtn" aria-label="Menu">
+            <i class="ri-menu-2-line text-xl"></i>
+          </button>
+          <div class="flex items-center gap-2 font-bold">
+            <i class="ri-cloud-line text-sky-400"></i>
+            <span>PansaCloud</span>
+          </div>
+          <form action="/logout" method="post">
+            <button class="pc-iconbtn" aria-label="Logout">
+              <i class="ri-logout-box-line text-xl"></i>
+            </button>
+          </form>
+        </div>
+      </header>
+
+      <!-- Mobile sidebar drawer -->
+      <div id="pcDrawer" class="pc-drawer md:hidden">
+        <div class="pc-drawer-backdrop"></div>
+        <div class="pc-drawer-panel">
+          <div class="flex items-center justify-between p-4 border-b border-slate-800">
+            <div class="flex items-center gap-2 font-bold">
+              <i class="ri-cloud-line text-sky-400"></i>
+              <span>PansaCloud</span>
+            </div>
+            <button id="pcCloseDrawer" class="pc-iconbtn" aria-label="Close">
+              <i class="ri-close-line text-xl"></i>
+            </button>
+          </div>
+
+          <!-- Reuse sidebar nav (simple) -->
+          <div class="p-3">
+            <a data-nav="1" href="/dashboard" class="pc-nav"><i class="ri-dashboard-line"></i><span>Dashboard</span></a>
+            <a data-nav="1" href="/dashboard/files" class="pc-nav"><i class="ri-folder-image-line"></i><span>Files</span></a>
+            <a data-nav="1" href="/dashboard/profile" class="pc-nav"><i class="ri-user-3-line"></i><span>Profile</span></a>
+            <a data-nav="1" href="/dashboard/security" class="pc-nav"><i class="ri-shield-keyhole-line"></i><span>Security</span></a>
+
+            <% if (sessionUser.role === 'admin') { %>
+              <div class="mt-4 px-2 text-xs text-slate-400">ADMIN</div>
+              <a data-nav="1" href="/admin/users" class="pc-nav"><i class="ri-group-line"></i><span>Users</span></a>
+              <a data-nav="1" href="/admin/whatsapp" class="pc-nav"><i class="ri-whatsapp-line"></i><span>WhatsApp</span></a>
+            <% } %>
+
+            <form class="mt-3" action="/logout" method="post">
+              <button class="pc-btn pc-btn-soft w-full">
+                <i class="ri-logout-box-line"></i> Logout
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <main class="pc-main">
+        <div id="appMain" class="pc-page">
+          <%- body %>
+        </div>
       </main>
     </div>
   <% } %>
 
-  <script src="/public/js/app.js"></script>
+  <!-- Crypto always available -->
   <script src="/public/js/crypto.pc.js"></script>
 
+  <!-- SPA + Overlay control only when logged in -->
+  <% if (sessionUser) { %>
+    <script src="/public/js/app.js"></script>
+    <script>
+      // Mobile drawer controls
+      const openDrawer = () => document.getElementById("pcDrawer")?.classList.add("open");
+      const closeDrawer = () => document.getElementById("pcDrawer")?.classList.remove("open");
+
+      $("#pcToggleSidebar").on("click", openDrawer);
+      $("#pcCloseDrawer").on("click", closeDrawer);
+      $(document).on("click", ".pc-drawer-backdrop", closeDrawer);
+
+      // Close drawer on navigation
+      $(document).on("click", "a[data-nav='1']", closeDrawer);
+    </script>
+  <% } %>
+
+  <!-- Page-specific JS -->
   <% if (page === "files") { %><script src="/public/js/files.js"></script><% } %>
   <% if (page === "dashboard") { %><script src="/public/js/dashboard.js"></script><% } %>
   <% if (page === "security") { %><script src="/public/js/security.js"></script><% } %>
