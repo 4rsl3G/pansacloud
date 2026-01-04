@@ -173,7 +173,15 @@ body{
   color: #cbd5e1;
   transition: .15s;
 }
+/* Active nav */
+.pc-nav-active{
+  background: rgba(56,189,248,.14);
+  border: 1px solid rgba(56,189,248,.18);
+  color: #fff;
+}
+.pc-nav-active i{ color: rgba(56,189,248,.95); }
 .pc-nav i{ font-size: 18px; opacity:.95; }
+
 .pc-nav:hover{
   background: rgba(30,41,59,.65);
   color: #fff;
