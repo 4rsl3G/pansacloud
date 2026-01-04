@@ -1,0 +1,25 @@
+<aside class="w-72 hidden md:block border-r border-slate-800 bg-slate-950/60">
+  <div class="p-5 flex items-center gap-2">
+    <i class="ri-cloud-line text-2xl"></i>
+    <div class="font-bold text-lg">PansaCloud</div>
+  </div>
+
+  <nav class="px-3 space-y-1">
+    <a data-nav="1" href="/dashboard" class="pc-nav"><i class="ri-dashboard-line"></i><span>Dashboard</span></a>
+    <a data-nav="1" href="/dashboard/files" class="pc-nav"><i class="ri-folder-image-line"></i><span>Files</span></a>
+    <a data-nav="1" href="/dashboard/profile" class="pc-nav"><i class="ri-user-3-line"></i><span>Profile</span></a>
+    <a data-nav="1" href="/dashboard/security" class="pc-nav"><i class="ri-shield-keyhole-line"></i><span>Security</span></a>
+
+    <% if (user.role === 'admin') { %>
+      <div class="mt-4 px-3 text-xs text-slate-400">ADMIN</div>
+      <a data-nav="1" href="/admin/users" class="pc-nav"><i class="ri-group-line"></i><span>Users</span></a>
+      <a data-nav="1" href="/admin/whatsapp" class="pc-nav"><i class="ri-whatsapp-line"></i><span>WhatsApp</span></a>
+    <% } %>
+  </nav>
+
+  <form class="p-4" action="/logout" method="post">
+    <button class="w-full rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2">
+      <i class="ri-logout-box-line"></i> Logout
+    </button>
+  </form>
+</aside>
