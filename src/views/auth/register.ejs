@@ -1,27 +1,30 @@
 <div class="min-h-screen flex items-center justify-center p-6">
   <div class="w-full max-w-lg pc-cardx pc-shadow p-6">
     <div class="flex items-center gap-3">
-      <div class="h-10 w-10 rounded-2xl bg-sky-500/15 border border-sky-500/20 flex items-center justify-center">
+      <div class="h-11 w-11 rounded-2xl bg-sky-500/15 border border-sky-500/20 flex items-center justify-center">
         <i class="ri-cloud-line text-2xl text-sky-400"></i>
       </div>
       <div>
-        <div class="text-3xl font-extrabold">Register</div>
+        <div class="text-3xl font-extrabold leading-7">Register</div>
         <div class="text-slate-300">Buat akun PansaCloud</div>
       </div>
     </div>
 
     <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <input id="name" class="pc-input" placeholder="Nama">
-      <input id="email" class="pc-input" placeholder="Email">
-      <input id="phone" class="pc-input sm:col-span-2" placeholder="No HP E.164 (contoh 62812...)">
-      <input id="password" type="password" class="pc-input sm:col-span-2" placeholder="Password">
+      <input id="name" class="pc-input" placeholder="Nama" autocomplete="name">
+      <input id="email" class="pc-input" placeholder="Email" autocomplete="email">
+      <input id="phone" class="pc-input sm:col-span-2" placeholder="No HP E.164 (contoh 62812...)" inputmode="numeric">
+      <input id="password" type="password" class="pc-input sm:col-span-2" placeholder="Password" autocomplete="new-password">
     </div>
 
-    <div class="mt-4 flex items-center gap-3">
-      <button id="btnReg" class="pc-btn pc-btn-primary w-44">
+    <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
+      <button id="btnReg" type="button" class="pc-btn pc-btn-primary sm:w-44 w-full">
         <i class="ri-user-add-line"></i> Register
       </button>
-      <a href="/login" class="text-slate-300 hover:text-white underline underline-offset-4">Login</a>
+
+      <a href="/login" class="text-slate-300 hover:text-white underline underline-offset-4 text-center sm:text-left">
+        Login
+      </a>
     </div>
 
     <div class="mt-5 text-xs text-slate-400">
@@ -31,38 +34,51 @@
 </div>
 
 <script>
-async function doRegister(){
-  const name=$("#name").val().trim();
-  const email=$("#email").val().trim();
-  const phone_e164=$("#phone").val().trim();
-  const password=$("#password").val();
+(function(){
+  function showOverlay(){ $("#pcOverlay").removeClass("hidden"); }
+  function hideOverlay(){ $("#pcOverlay").addClass("hidden"); }
 
-  if(!name || !email || !phone_e164 || !password) return toastr.warning("Semua field wajib diisi");
-
-  $("#pcOverlay").removeClass("hidden");
-
-  try{
-    const r = await $.ajax({
-      url:"/api/register",
-      method:"POST",
-      contentType:"application/json",
-      data: JSON.stringify({ name,email,phone_e164,password })
-    });
-
-    if(!r.ok){
-      toastr.error(r.msg||"Register gagal");
-      return;
-    }
-
-    toastr.success(r.msg||"Register berhasil");
-    location.href = r.redirect || "/login";
-  }catch(e){
-    toastr.error("Terjadi kesalahan server");
-  }finally{
-    $("#pcOverlay").addClass("hidden");
+  function isValidPhoneE164(idPhone){
+    // simple rule: hanya angka, minimal 10 digit, biasanya mulai 62
+    return /^[0-9]{10,15}$/.test(idPhone);
   }
-}
 
-$("#btnReg").on("click", doRegister);
-$("#password").on("keydown", e => { if(e.key==="Enter") doRegister(); });
+  async function doRegister(){
+    const name = $("#name").val().trim();
+    const email = $("#email").val().trim();
+    const phone_e164 = $("#phone").val().trim();
+    const password = $("#password").val();
+
+    if(!name || !email || !phone_e164 || !password) return toastr.warning("Semua field wajib diisi");
+    if(!isValidPhoneE164(phone_e164)) return toastr.error("No HP harus format angka E.164 (contoh 62812...)");
+
+    showOverlay();
+
+    try{
+      const r = await $.ajax({
+        url: "/api/register",
+        method: "POST",
+        contentType: "application/json",
+        dataType: "json",
+        timeout: 15000,
+        data: JSON.stringify({ name, email, phone_e164, password })
+      });
+
+      if(!r || r.ok !== true){
+        return toastr.error((r && r.msg) ? r.msg : "Register gagal");
+      }
+
+      toastr.success(r.msg || "Register berhasil");
+      location.href = r.redirect || "/login";
+    } catch(xhr){
+      console.log("REGISTER AJAX ERROR:", xhr?.status, xhr?.responseText);
+      toastr.error(`AJAX error ${xhr?.status || ""}`);
+    } finally {
+      hideOverlay();
+    }
+  }
+
+  $("#btnReg").on("click", doRegister);
+  $("#password").on("keydown", (e)=>{ if(e.key === "Enter") doRegister(); });
+})();
 </script>
