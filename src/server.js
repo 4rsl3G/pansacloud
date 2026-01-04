@@ -21,7 +21,51 @@ dotenv.config();
 const app = express();
 
 // security headers
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      baseUri: ["'self'"],
+      frameAncestors: ["'self'"],
+      objectSrc: ["'none'"],
+
+      // allow CDN scripts (tailwind, jquery, toastr)
+      scriptSrc: [
+        "'self'",
+        "https://cdn.tailwindcss.com",
+        "https://code.jquery.com",
+        "https://cdnjs.cloudflare.com"
+      ],
+      scriptSrcAttr: ["'self'", "'unsafe-inline'"],
+
+      // allow inline style + CDN css
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://fonts.googleapis.com",
+        "https://cdnjs.cloudflare.com",
+        "https://cdn.jsdelivr.net"
+      ],
+
+      // fonts
+      fontSrc: [
+        "'self'",
+        "https://fonts.gstatic.com",
+        "https://cdn.jsdelivr.net",
+        "data:"
+      ],
+
+      // images (toastr icons sometimes)
+      imgSrc: ["'self'", "data:"],
+
+      // XHR/fetch/websocket (AJAX + socket.io)
+      connectSrc: ["'self'", "https://pansa.my.id", "wss://pansa.my.id"],
+
+      upgradeInsecureRequests: []
+    }
+  }
+}));
 
 // body parsers
 app.use(express.json({ limit: "2mb" }));
