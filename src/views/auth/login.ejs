@@ -1,26 +1,65 @@
 <div class="min-h-screen flex items-center justify-center p-6">
-  <div class="card w-full max-w-md rounded-2xl p-6 shadow-xl">
-    <h1 class="text-2xl font-bold">Login</h1>
-    <p class="text-slate-300 mt-1">Masuk ke PansaCloud</p>
+  <div class="w-full max-w-lg pc-cardx pc-shadow p-6">
+    <div class="flex items-center gap-3">
+      <div class="h-10 w-10 rounded-2xl bg-sky-500/15 border border-sky-500/20 flex items-center justify-center">
+        <i class="ri-cloud-line text-2xl text-sky-400"></i>
+      </div>
+      <div>
+        <div class="text-3xl font-extrabold">Login</div>
+        <div class="text-slate-300">Masuk ke PansaCloud</div>
+      </div>
+    </div>
 
-    <div class="mt-6 space-y-3">
-      <input id="email" class="w-full rounded-xl bg-slate-900/60 border border-slate-700 p-3" placeholder="Email">
-      <input id="password" type="password" class="w-full rounded-xl bg-slate-900/60 border border-slate-700 p-3" placeholder="Password">
-      <button id="btnLogin" class="w-full rounded-xl bg-sky-500 hover:bg-sky-400 transition p-3 font-semibold">
-        Login
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <input id="email" class="pc-input sm:col-span-2" placeholder="Email">
+      <input id="password" type="password" class="pc-input sm:col-span-2" placeholder="Password">
+    </div>
+
+    <div class="mt-4 flex items-center gap-3">
+      <button id="btnLogin" class="pc-btn pc-btn-primary w-40">
+        <i class="ri-login-box-line"></i> Login
       </button>
-      <a href="/register" class="block text-center text-slate-300 hover:text-white">Register</a>
+      <a href="/register" class="text-slate-300 hover:text-white underline underline-offset-4">Register</a>
+    </div>
+
+    <div class="mt-5 text-xs text-slate-400">
+      Dengan login, kamu setuju file terenkripsi end-to-end dan hanya bisa dibuka dengan PIN kamu.
     </div>
   </div>
 </div>
 
 <script>
-$("#btnLogin").on("click", async ()=>{
+async function doLogin(){
   const email=$("#email").val().trim();
   const password=$("#password").val();
-  const r = await $.ajax({ url:"/api/login", method:"POST", contentType:"application/json", data: JSON.stringify({ email, password })});
-  if(!r.ok) return toastr.error(r.msg);
-  toastr.success(r.msg);
-  location.href=r.redirect;
-});
+
+  if(!email || !password) return toastr.warning("Email & password wajib diisi");
+
+  // overlay aman (karena app.js tidak diload di auth)
+  $("#pcOverlay").removeClass("hidden");
+
+  try{
+    const r = await $.ajax({
+      url:"/api/login",
+      method:"POST",
+      contentType:"application/json",
+      data: JSON.stringify({ email, password })
+    });
+
+    if(!r.ok){
+      toastr.error(r.msg || "Login gagal");
+      return;
+    }
+
+    toastr.success(r.msg || "Login berhasil");
+    location.href = r.redirect || "/dashboard";
+  }catch(e){
+    toastr.error("Terjadi kesalahan server");
+  }finally{
+    $("#pcOverlay").addClass("hidden");
+  }
+}
+
+$("#btnLogin").on("click", doLogin);
+$("#password").on("keydown", e => { if(e.key==="Enter") doLogin(); });
 </script>
