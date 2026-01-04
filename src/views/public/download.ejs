@@ -1,0 +1,74 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="/public/js/crypto.pc.js"></script>
+
+<div id="pcOverlay" class="fixed inset-0 z-[9999] hidden">
+  <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
+  <div class="relative h-full w-full flex items-center justify-center">
+    <div class="rounded-2xl px-8 py-6 text-center border border-slate-700/50 bg-slate-900/50">
+      <div class="flex items-center justify-center gap-3">
+        <i class="ri-cloud-line text-3xl animate-spin"></i>
+        <div class="text-xl font-bold">PansaCloud</div>
+      </div>
+      <div class="mt-2 text-slate-300 text-sm">Memproses…</div>
+    </div>
+  </div>
+</div>
+
+<div class="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6">
+  <div class="w-full max-w-md rounded-2xl border border-slate-700/50 bg-slate-900/40 p-6">
+    <div class="text-2xl font-bold flex items-center gap-2">
+      <i class="ri-lock-password-line"></i> Download
+    </div>
+
+    <% if (invalid) { %>
+      <div class="mt-3 text-rose-300">Token invalid.</div>
+    <% } else if (expired) { %>
+      <div class="mt-3 text-rose-300">Token expired.</div>
+    <% } else { %>
+      <div class="text-slate-300 text-sm mt-1">Masukkan PIN untuk decrypt & download file asli.</div>
+      <input id="pin" type="password" class="w-full mt-4 rounded-xl bg-slate-950/50 border border-slate-700 p-3" placeholder="PIN">
+      <button id="btn" class="w-full mt-3 rounded-xl bg-sky-500 hover:bg-sky-400 transition p-3 font-semibold">Download</button>
+    <% } %>
+  </div>
+</div>
+
+<script>
+toastr.options = { positionClass:"toast-bottom-right", timeOut:2000 };
+const token="<%= token %>";
+const show=()=>$("#pcOverlay").removeClass("hidden");
+const hide=()=>$("#pcOverlay").addClass("hidden");
+
+$("#btn").on("click", async ()=>{
+  const pin=$("#pin").val().trim();
+  if(!pin) return toastr.warning("Masukkan PIN");
+  show();
+  try{
+    const meta = await $.get(`/api/dl/${token}/meta`);
+    if(!meta.ok) return toastr.error(meta.msg||"Token invalid/expired");
+    if(meta.kind !== "single"){ window.location.href = `/dl/${token}`; return; }
+
+    const name = await PCrypto.decryptText(PCrypto.b64ToU8(meta.nameEnc), pin);
+    const mime = await PCrypto.decryptText(PCrypto.b64ToU8(meta.mimeEnc), pin);
+
+    const res = await fetch(`/api/dl/${token}/raw`);
+    if(!res.ok) return toastr.error("Gagal ambil data");
+    const encBlob = await res.blob();
+
+    const plainBlob = await PCrypto.decryptToBlob(encBlob, pin, mime);
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(plainBlob);
+    a.download=name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toastr.success("Sukses ✅");
+  } catch {
+    toastr.error("PIN salah / data rusak");
+  } finally {
+    hide();
+  }
+});
+</script>
