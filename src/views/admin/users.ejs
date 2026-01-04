@@ -1,0 +1,56 @@
+<div class="max-w-6xl mx-auto p-6">
+  <h1 class="text-2xl font-bold">Users</h1>
+  <div class="card rounded-2xl p-5 mt-6 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="text-slate-300">
+        <tr>
+          <th class="text-left py-2">ID</th>
+          <th class="text-left py-2">Role</th>
+          <th class="text-left py-2">Name</th>
+          <th class="text-left py-2">Email</th>
+          <th class="text-left py-2">Phone</th>
+          <th class="text-left py-2">Files</th>
+          <th class="text-left py-2">Storage</th>
+          <th class="text-left py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(u=>{ %>
+          <tr class="border-t border-slate-800">
+            <td class="py-2"><%= u.id %></td>
+            <td class="py-2"><%= u.role %></td>
+            <td class="py-2"><%= u.name %></td>
+            <td class="py-2"><%= u.email %></td>
+            <td class="py-2"><%= u.phone_e164 %></td>
+            <td class="py-2"><%= u.totalFiles %></td>
+            <td class="py-2"><%= u.storageBytes %></td>
+            <td class="py-2">
+              <button class="btnResetPin rounded-xl bg-amber-600 hover:bg-amber-500 px-3 py-1" data-id="<%= u.id %>">Reset PIN</button>
+              <button class="btnResetPw rounded-xl bg-sky-600 hover:bg-sky-500 px-3 py-1" data-id="<%= u.id %>">Reset PW</button>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+$(document).on("click",".btnResetPin", async function(){
+  const id=$(this).data("id");
+  const newPin=prompt("New PIN (4-10 digit):");
+  if(!newPin) return;
+  const r = await $.ajax({ url:`/admin/api/users/${id}/reset-pin`, method:"POST", contentType:"application/json", data: JSON.stringify({ newPin })});
+  if(!r.ok) return toastr.error(r.msg);
+  toastr.success(r.msg);
+});
+
+$(document).on("click",".btnResetPw", async function(){
+  const id=$(this).data("id");
+  const newPassword=prompt("New Password (min 6):");
+  if(!newPassword) return;
+  const r = await $.ajax({ url:`/admin/api/users/${id}/reset-password`, method:"POST", contentType:"application/json", data: JSON.stringify({ newPassword })});
+  if(!r.ok) return toastr.error(r.msg);
+  toastr.success(r.msg);
+});
+</script>
