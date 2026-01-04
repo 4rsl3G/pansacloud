@@ -1,25 +1,91 @@
-<aside class="w-72 hidden md:block border-r border-slate-800 bg-slate-950/60">
-  <div class="p-5 flex items-center gap-2">
-    <i class="ri-cloud-line text-2xl"></i>
-    <div class="font-bold text-lg">PansaCloud</div>
+<aside class="w-72 hidden md:flex md:flex-col border-r border-slate-800/80 bg-slate-950/55 backdrop-blur-xl">
+  <!-- Brand -->
+  <div class="p-5 flex items-center gap-3">
+    <div class="h-10 w-10 rounded-2xl bg-sky-500/15 border border-sky-500/20 flex items-center justify-center">
+      <i class="ri-cloud-line text-2xl text-sky-400"></i>
+    </div>
+    <div>
+      <div class="font-extrabold text-lg leading-5 tracking-wide">PansaCloud</div>
+      <div class="text-xs text-slate-400 -mt-0.5">Secure Encrypted Vault</div>
+    </div>
   </div>
 
-  <nav class="px-3 space-y-1">
-    <a data-nav="1" href="/dashboard" class="pc-nav"><i class="ri-dashboard-line"></i><span>Dashboard</span></a>
-    <a data-nav="1" href="/dashboard/files" class="pc-nav"><i class="ri-folder-image-line"></i><span>Files</span></a>
-    <a data-nav="1" href="/dashboard/profile" class="pc-nav"><i class="ri-user-3-line"></i><span>Profile</span></a>
-    <a data-nav="1" href="/dashboard/security" class="pc-nav"><i class="ri-shield-keyhole-line"></i><span>Security</span></a>
+  <!-- Profile mini -->
+  <div class="px-4 pb-4">
+    <div class="pc-cardx pc-shadow px-4 py-4">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <div class="font-bold truncate"><%= user.name || "User" %></div>
+          <div class="text-xs text-slate-400 mt-0.5 truncate">
+            <%= user.phone || ("ID: " + user.id) %>
+          </div>
+        </div>
+
+        <% if (user.role === 'admin') { %>
+          <span class="text-[11px] px-2 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/20 text-emerald-300 font-semibold">
+            ADMIN
+          </span>
+        <% } else { %>
+          <span class="text-[11px] px-2 py-1 rounded-xl bg-sky-500/15 border border-sky-500/20 text-sky-300 font-semibold">
+            USER
+          </span>
+        <% } %>
+      </div>
+
+      <div class="mt-3 flex items-center gap-2 text-xs text-slate-300">
+        <i class="ri-lock-2-line text-slate-400"></i>
+        <span>Encrypted storage aktif</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="px-3 space-y-1 flex-1 overflow-auto pb-4">
+    <%
+      const p = (typeof path === "string" ? path : "");
+      const isActive = (href) => p === href || (href !== "/dashboard" && p.startsWith(href));
+      const cls = (href) =>
+        "pc-nav " + (isActive(href) ? "pc-nav-active" : "");
+    %>
+
+    <a data-nav="1" href="/dashboard" class="<%= cls('/dashboard') %>">
+      <i class="ri-dashboard-line"></i><span>Dashboard</span>
+    </a>
+
+    <a data-nav="1" href="/dashboard/files" class="<%= cls('/dashboard/files') %>">
+      <i class="ri-folder-image-line"></i><span>Files</span>
+    </a>
+
+    <a data-nav="1" href="/dashboard/profile" class="<%= cls('/dashboard/profile') %>">
+      <i class="ri-user-3-line"></i><span>Profile</span>
+    </a>
+
+    <a data-nav="1" href="/dashboard/security" class="<%= cls('/dashboard/security') %>">
+      <i class="ri-shield-keyhole-line"></i><span>Security</span>
+    </a>
 
     <% if (user.role === 'admin') { %>
-      <div class="mt-4 px-3 text-xs text-slate-400">ADMIN</div>
-      <a data-nav="1" href="/admin/users" class="pc-nav"><i class="ri-group-line"></i><span>Users</span></a>
-      <a data-nav="1" href="/admin/whatsapp" class="pc-nav"><i class="ri-whatsapp-line"></i><span>WhatsApp</span></a>
+      <div class="mt-4 px-3 text-xs text-slate-400 tracking-widest">ADMIN</div>
+
+      <a data-nav="1" href="/admin/users" class="<%= cls('/admin/users') %>">
+        <i class="ri-group-line"></i><span>Users</span>
+      </a>
+
+      <a data-nav="1" href="/admin/whatsapp" class="<%= cls('/admin/whatsapp') %>">
+        <i class="ri-whatsapp-line"></i><span>WhatsApp</span>
+      </a>
     <% } %>
   </nav>
 
-  <form class="p-4" action="/logout" method="post">
-    <button class="w-full rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2">
-      <i class="ri-logout-box-line"></i> Logout
-    </button>
-  </form>
+  <!-- Footer -->
+  <div class="p-4 border-t border-slate-800/80">
+    <form action="/logout" method="post">
+      <button class="pc-btn pc-btn-soft w-full">
+        <i class="ri-logout-box-line"></i> Logout
+      </button>
+    </form>
+    <div class="mt-3 text-[11px] text-slate-500 text-center">
+      © <%= new Date().getFullYear() %> PansaCloud
+    </div>
+  </div>
 </aside>
