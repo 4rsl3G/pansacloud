@@ -29,7 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // layouts
 app.set("view engine", "ejs");
-app.set("views", path.resolve("views"));
+app.set("views", path.resolve("src/views"));
 app.use(expressLayouts);
 app.set("layout", "layouts/main");
 
