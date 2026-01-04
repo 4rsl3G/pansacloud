@@ -3,8 +3,11 @@ toastr.options = { positionClass:"toast-bottom-right", timeOut:2000 };
 function pcShow(){ $("#pcOverlay").removeClass("hidden"); }
 function pcHide(){ $("#pcOverlay").addClass("hidden"); }
 
+// DETEKSI HALAMAN AUTH (login/register)
+const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
+
 async function pcNav(url, push=true){
-  pcShow();
+  if(!isAuthPage) pcShow();
   try{
     const html = await $.ajax({ url, method:"GET", headers:{ "X-PANSACLOUD-NAV":"1" }});
     $("#appMain").html(html);
@@ -12,7 +15,7 @@ async function pcNav(url, push=true){
   } catch {
     toastr.error("Gagal memuat halaman");
   } finally {
-    pcHide();
+    if(!isAuthPage) pcHide();
   }
 }
 
@@ -28,7 +31,24 @@ window.addEventListener("popstate",(e)=>{
   pcNav(url, false);
 });
 
-// overlay untuk semua AJAX
+// overlay untuk semua AJAX (DISABLE DI AUTH PAGE)
 let ajaxCount=0;
-$(document).ajaxStart(()=>{ ajaxCount++; pcShow(); });
-$(document).ajaxStop(()=>{ ajaxCount=Math.max(0,ajaxCount-1); if(ajaxCount===0) pcHide(); });
+
+$(document).ajaxStart((evt, xhr, settings)=>{
+  if (isAuthPage) return; // <<< penting
+  ajaxCount++;
+  pcShow();
+});
+
+$(document).ajaxStop(()=>{
+  if (isAuthPage) return; // <<< penting
+  ajaxCount=Math.max(0,ajaxCount-1);
+  if(ajaxCount===0) pcHide();
+});
+
+// tambahan safety: kalau ada ajax error, paksa hide (biar ga nyangkut)
+$(document).ajaxError(()=>{
+  if (isAuthPage) return;
+  ajaxCount = 0;
+  pcHide();
+});
