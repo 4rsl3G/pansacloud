@@ -1,25 +1,28 @@
 <div class="min-h-screen flex items-center justify-center p-6">
   <div class="w-full max-w-lg pc-cardx pc-shadow p-6">
     <div class="flex items-center gap-3">
-      <div class="h-10 w-10 rounded-2xl bg-sky-500/15 border border-sky-500/20 flex items-center justify-center">
+      <div class="h-11 w-11 rounded-2xl bg-sky-500/15 border border-sky-500/20 flex items-center justify-center">
         <i class="ri-cloud-line text-2xl text-sky-400"></i>
       </div>
       <div>
-        <div class="text-3xl font-extrabold">Login</div>
+        <div class="text-3xl font-extrabold leading-7">Login</div>
         <div class="text-slate-300">Masuk ke PansaCloud</div>
       </div>
     </div>
 
-    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <input id="email" class="pc-input sm:col-span-2" placeholder="Email">
-      <input id="password" type="password" class="pc-input sm:col-span-2" placeholder="Password">
+    <div class="mt-6 grid grid-cols-1 gap-3">
+      <input id="email" class="pc-input" placeholder="Email" autocomplete="email">
+      <input id="password" type="password" class="pc-input" placeholder="Password" autocomplete="current-password">
     </div>
 
-    <div class="mt-4 flex items-center gap-3">
-      <button id="btnLogin" class="pc-btn pc-btn-primary w-40">
+    <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
+      <button id="btnLogin" type="button" class="pc-btn pc-btn-primary sm:w-44 w-full">
         <i class="ri-login-box-line"></i> Login
       </button>
-      <a href="/register" class="text-slate-300 hover:text-white underline underline-offset-4">Register</a>
+
+      <a href="/register" class="text-slate-300 hover:text-white underline underline-offset-4 text-center sm:text-left">
+        Register
+      </a>
     </div>
 
     <div class="mt-5 text-xs text-slate-400">
@@ -29,37 +32,43 @@
 </div>
 
 <script>
-async function doLogin(){
-  const email=$("#email").val().trim();
-  const password=$("#password").val();
+(function(){
+  function showOverlay(){ $("#pcOverlay").removeClass("hidden"); }
+  function hideOverlay(){ $("#pcOverlay").addClass("hidden"); }
 
-  if(!email || !password) return toastr.warning("Email & password wajib diisi");
+  async function doLogin(){
+    const email = $("#email").val().trim();
+    const password = $("#password").val();
 
-  // overlay aman (karena app.js tidak diload di auth)
-  $("#pcOverlay").removeClass("hidden");
+    if(!email || !password) return toastr.warning("Email & password wajib diisi");
 
-  try{
-    const r = await $.ajax({
-      url:"/api/login",
-      method:"POST",
-      contentType:"application/json",
-      data: JSON.stringify({ email, password })
-    });
+    showOverlay();
 
-    if(!r.ok){
-      toastr.error(r.msg || "Login gagal");
-      return;
+    try{
+      const r = await $.ajax({
+        url: "/api/login",
+        method: "POST",
+        contentType: "application/json",
+        dataType: "json",
+        timeout: 15000,
+        data: JSON.stringify({ email, password })
+      });
+
+      if(!r || r.ok !== true){
+        return toastr.error((r && r.msg) ? r.msg : "Login gagal");
+      }
+
+      toastr.success(r.msg || "Login berhasil");
+      location.href = r.redirect || "/dashboard";
+    } catch(xhr){
+      console.log("LOGIN AJAX ERROR:", xhr?.status, xhr?.responseText);
+      toastr.error(`AJAX error ${xhr?.status || ""}`);
+    } finally {
+      hideOverlay();
     }
-
-    toastr.success(r.msg || "Login berhasil");
-    location.href = r.redirect || "/dashboard";
-  }catch(e){
-    toastr.error("Terjadi kesalahan server");
-  }finally{
-    $("#pcOverlay").addClass("hidden");
   }
-}
 
-$("#btnLogin").on("click", doLogin);
-$("#password").on("keydown", e => { if(e.key==="Enter") doLogin(); });
+  $("#btnLogin").on("click", doLogin);
+  $("#password").on("keydown", (e)=>{ if(e.key === "Enter") doLogin(); });
+})();
 </script>
