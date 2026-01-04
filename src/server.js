@@ -30,16 +30,18 @@ app.use(helmet({
       frameAncestors: ["'self'"],
       objectSrc: ["'none'"],
 
-      // allow CDN scripts (tailwind, jquery, toastr)
+      // ALLOW CDN SCRIPTS
       scriptSrc: [
         "'self'",
-        "https://cdn.tailwindcss.com",
         "https://code.jquery.com",
+        "https://cdn.tailwindcss.com",
         "https://cdnjs.cloudflare.com"
       ],
+
+      // kalau kamu pakai inline script di EJS (kamu pakai!)
       scriptSrcAttr: ["'self'", "'unsafe-inline'"],
 
-      // allow inline style + CDN css
+      // CSS + inline style
       styleSrc: [
         "'self'",
         "'unsafe-inline'",
@@ -56,11 +58,14 @@ app.use(helmet({
         "data:"
       ],
 
-      // images (toastr icons sometimes)
+      // images
       imgSrc: ["'self'", "data:"],
 
-      // XHR/fetch/websocket (AJAX + socket.io)
+      // AJAX + socket.io
       connectSrc: ["'self'", "https://pansa.my.id", "wss://pansa.my.id"],
+
+      // allow form submit to self (login/register masih ajax, tapi aman)
+      formAction: ["'self'"],
 
       upgradeInsecureRequests: []
     }
