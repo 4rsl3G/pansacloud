@@ -1,4 +1,4 @@
-import makeWASocket, { DisconnectReason, fetchLatestBaileysVersion, jidNormalizedUser } from "baileys";
+import * as baileysPkg from "baileys";
 import { Boom } from "@hapi/boom";
 import { pool } from "../db.js";
 import { useMysqlAuthState } from "./authStateMysql.js";
@@ -6,6 +6,19 @@ import { verifyPin } from "../crypto/pinCrypto.js";
 import { createDownloadToken } from "../crypto/token.js";
 
 const TOKEN_MIN = Number(process.env.TOKEN_EXPIRE_MIN || 10);
+
+// --- Baileys export compatibility (for "baileys" deprecated package) ---
+const makeWASocket = baileysPkg.default || baileysPkg.makeWASocket;
+const DisconnectReason = baileysPkg.DisconnectReason;
+const fetchLatestBaileysVersion = baileysPkg.fetchLatestBaileysVersion;
+const jidNormalizedUser = baileysPkg.jidNormalizedUser;
+
+if (!makeWASocket) {
+  throw new Error(
+    `Baileys import failed: makeWASocket not found from "baileys".
+Try reinstalling or switch to "@whiskeysockets/baileys".`
+  );
+}
 
 async function getUserByPhone(phone_e164) {
   const [rows] = await pool.query(
@@ -16,7 +29,10 @@ async function getUserByPhone(phone_e164) {
 }
 
 async function isUnlocked(userId) {
-  const [r] = await pool.query("SELECT is_unlocked FROM wa_unlocks WHERE user_id=? LIMIT 1", [userId]);
+  const [r] = await pool.query(
+    "SELECT is_unlocked FROM wa_unlocks WHERE user_id=? LIMIT 1",
+    [userId]
+  );
   return r[0]?.is_unlocked === 1;
 }
 
@@ -34,9 +50,10 @@ export async function startWa(io, sessionName) {
 
   let version;
   try {
-    ({ version } = await fetchLatestBaileysVersion());
+    const v = await fetchLatestBaileysVersion?.();
+    version = v?.version;
   } catch {
-    version = undefined; // fallback internal
+    version = undefined;
   }
 
   const sock = makeWASocket({
@@ -49,13 +66,15 @@ export async function startWa(io, sessionName) {
 
   sock.ev.on("connection.update", (update) => {
     const { connection, lastDisconnect, qr } = update;
+
     if (qr) io.emit("wa:qr", { qr });
     if (connection === "open") io.emit("wa:status", { status: "connected" });
 
     if (connection === "close") {
       const code = new Boom(lastDisconnect?.error)?.output?.statusCode;
-      const shouldReconnect = code !== DisconnectReason.loggedOut;
+      const shouldReconnect = code !== DisconnectReason?.loggedOut;
       io.emit("wa:status", { status: "disconnected", shouldReconnect, code });
+
       if (shouldReconnect) setTimeout(() => startWa(io, sessionName), 2000);
     }
   });
@@ -69,13 +88,17 @@ export async function startWa(io, sessionName) {
       // ignore group
       if (remoteJid.endsWith("@g.us")) continue;
 
-      const jid = jidNormalizedUser(remoteJid);
-      const phone = jid.split("@")[0]; // assume phone_e164 stored like 62812...
+      const jid = jidNormalizedUser ? jidNormalizedUser(remoteJid) : remoteJid;
+      const phone = jid.split("@")[0];
 
       const user = await getUserByPhone(phone);
-      if (!user) continue; // only registered users responded
+      if (!user) continue;
 
-      const text = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
+      const text =
+        msg.message.conversation ||
+        msg.message.extendedTextMessage?.text ||
+        "";
+
       if (!text.startsWith(".")) continue;
 
       const reply = (t) => sock.sendMessage(remoteJid, { text: t });
@@ -83,13 +106,15 @@ export async function startWa(io, sessionName) {
       const cmd = cmdRaw.toLowerCase();
 
       if (cmd === ".help") {
-        return reply(["Perintah:",
-          ".pin <PIN>",
-          ".logout",
-          ".list",
-          ".get <id>",
-          ".downloadall"
-        ].join("\n"));
+        return reply(
+          ["Perintah:",
+            ".pin <PIN>",
+            ".logout",
+            ".list",
+            ".get <id>",
+            ".downloadall"
+          ].join("\n")
+        );
       }
 
       if (cmd === ".pin") {
@@ -126,6 +151,7 @@ export async function startWa(io, sessionName) {
           [fileId, user.id]
         );
         if (!exists.length) return reply("File tidak ditemukan.");
+
         const token = await createDownloadToken(user.id, "single", fileId, TOKEN_MIN);
         return reply(`Link download (decrypt pakai PIN): ${process.env.APP_BASE_URL}/dl/${token}`);
       }
