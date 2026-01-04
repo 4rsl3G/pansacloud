@@ -1,0 +1,146 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<!-- JSZip -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<script src="/public/js/crypto.pc.js"></script>
+
+<div id="pcOverlay" class="fixed inset-0 z-[9999] hidden">
+  <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
+  <div class="relative h-full w-full flex items-center justify-center">
+    <div class="rounded-2xl px-8 py-6 text-center border border-slate-700/50 bg-slate-900/50">
+      <div class="flex items-center justify-center gap-3">
+        <i class="ri-cloud-line text-3xl animate-spin"></i>
+        <div class="text-xl font-bold">PansaCloud</div>
+      </div>
+      <div id="pcMsg" class="mt-2 text-slate-300 text-sm">Memproses…</div>
+    </div>
+  </div>
+</div>
+
+<div class="min-h-screen bg-slate-950 text-slate-100 p-6">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-2xl font-bold flex items-center gap-2">
+      <i class="ri-archive-line"></i> Decrypt Pack
+    </div>
+    <div class="text-slate-300 text-sm mt-1">
+      Pack terenkripsi akan diunduh, lalu didecrypt di browser. Hasilnya ZIP file asli.
+    </div>
+
+    <div class="mt-6 rounded-2xl border border-slate-700/50 bg-slate-900/40 p-5">
+      <input id="pin" type="password" class="w-full rounded-xl bg-slate-950/50 border border-slate-700 p-3" placeholder="PIN">
+      <button id="btn" class="mt-3 w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 transition p-3 font-semibold">
+        Download & Decrypt → ZIP Asli
+      </button>
+
+      <div class="mt-4 text-slate-300 text-sm">
+        <div id="progress">Ready.</div>
+      </div>
+    </div>
+
+    <div class="mt-4 text-xs text-slate-400">
+      *Jika file sangat banyak/besar, proses decrypt di browser akan memakan RAM.
+    </div>
+  </div>
+</div>
+
+<script>
+toastr.options = { positionClass:"toast-bottom-right", timeOut:2000 };
+const token="<%= token %>";
+const show=(m)=>{ $("#pcMsg").text(m||"Memproses…"); $("#pcOverlay").removeClass("hidden"); };
+const hide=()=>$("#pcOverlay").addClass("hidden");
+
+function setProg(t){ $("#progress").text(t); }
+
+function safeFileName(name){
+  // remove dangerous chars for zip
+  return String(name).replace(/[\/\\:*?"<>|]/g,"_").trim() || "file";
+}
+
+$("#btn").on("click", async ()=>{
+  const pin=$("#pin").val().trim();
+  if(!pin) return toastr.warning("Masukkan PIN");
+  show("Mengunduh pack terenkripsi…");
+  setProg("Downloading encrypted pack…");
+
+  try{
+    // 1) fetch encrypted zip pack
+    const res = await fetch(`/api/dl/${token}/raw`);
+    if(!res.ok) return toastr.error("Gagal download pack (token invalid/expired?)");
+    const zipBlob = await res.blob();
+
+    show("Membuka ZIP…");
+    setProg("Unzipping…");
+    const zip = await JSZip.loadAsync(zipBlob);
+
+    const manifestText = await zip.file("manifest.json").async("string");
+    const manifest = JSON.parse(manifestText);
+
+    if(!Array.isArray(manifest) || !manifest.length){
+      toastr.info("Pack kosong.");
+      hide();
+      return;
+    }
+
+    show("Decrypt metadata…");
+    setProg("Decrypting metadata…");
+
+    // 2) prepare plaintext zip
+    const outZip = new JSZip();
+
+    let done = 0;
+    for (const item of manifest) {
+      done++;
+      setProg(`Decrypting ${done}/${manifest.length}…`);
+
+      // decrypt name & mime
+      let name = `file_${item.id}`;
+      let mime = "application/octet-stream";
+      try{
+        name = await PCrypto.decryptText(PCrypto.b64ToU8(item.nameEnc), pin);
+        mime = await PCrypto.decryptText(PCrypto.b64ToU8(item.mimeEnc), pin);
+      } catch {
+        // PIN salah: stop early
+        throw new Error("PIN salah");
+      }
+
+      const encFile = zip.file(`files/${item.file}`);
+      if(!encFile) continue;
+
+      const encU8 = await encFile.async("uint8array");
+      const encBlobOne = new Blob([encU8], { type:"application/octet-stream" });
+
+      // decrypt file payload -> plaintext blob
+      let plainBlob;
+      try{
+        plainBlob = await PCrypto.decryptToBlob(encBlobOne, pin, mime);
+      } catch {
+        throw new Error("Decrypt gagal (PIN salah / data rusak)");
+      }
+
+      outZip.file(safeFileName(name), plainBlob);
+    }
+
+    show("Membuat ZIP asli…");
+    setProg("Generating plaintext zip… (bisa agak lama)");
+
+    const outBlob = await outZip.generateAsync({ type:"blob", compression:"DEFLATE", compressionOptions:{ level:6 }});
+
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(outBlob);
+    a.download="pansacloud_plaintext.zip";
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    toastr.success("Selesai ✅ ZIP asli sudah diunduh");
+  } catch(e) {
+    toastr.error(e?.message || "Gagal decrypt pack");
+  } finally {
+    hide();
+  }
+});
+</script>
