@@ -1,0 +1,30 @@
+<div class="min-h-screen flex items-center justify-center p-6">
+  <div class="card w-full max-w-md rounded-2xl p-6 shadow-xl">
+    <h1 class="text-2xl font-bold">Register</h1>
+    <p class="text-slate-300 mt-1">Buat akun PansaCloud</p>
+
+    <div class="mt-6 space-y-3">
+      <input id="name" class="w-full rounded-xl bg-slate-900/60 border border-slate-700 p-3" placeholder="Nama">
+      <input id="email" class="w-full rounded-xl bg-slate-900/60 border border-slate-700 p-3" placeholder="Email">
+      <input id="phone" class="w-full rounded-xl bg-slate-900/60 border border-slate-700 p-3" placeholder="No HP E.164 (contoh 62812...)">
+      <input id="password" type="password" class="w-full rounded-xl bg-slate-900/60 border border-slate-700 p-3" placeholder="Password">
+      <button id="btnReg" class="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 transition p-3 font-semibold">
+        Register
+      </button>
+      <a href="/login" class="block text-center text-slate-300 hover:text-white">Login</a>
+    </div>
+  </div>
+</div>
+
+<script>
+$("#btnReg").on("click", async ()=>{
+  const name=$("#name").val().trim();
+  const email=$("#email").val().trim();
+  const phone_e164=$("#phone").val().trim();
+  const password=$("#password").val();
+  const r = await $.ajax({ url:"/api/register", method:"POST", contentType:"application/json", data: JSON.stringify({ name,email,phone_e164,password })});
+  if(!r.ok) return toastr.error(r.msg);
+  toastr.success(r.msg);
+  location.href=r.redirect;
+});
+</script>
