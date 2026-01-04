@@ -1,0 +1,51 @@
+<div class="max-w-6xl mx-auto p-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold">Files</h1>
+      <p class="text-slate-300 text-sm">Semua file tersimpan terenkripsi. Decrypt hanya di browser.</p>
+    </div>
+    <div class="flex gap-2">
+      <button id="btnLinkAll" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2">
+        <i class="ri-link"></i> Link Download All
+      </button>
+    </div>
+  </div>
+
+  <div class="card rounded-2xl p-5 mt-6">
+    <% if(!pinSet){ %>
+      <div class="rounded-xl bg-rose-500/10 border border-rose-400/20 p-4">
+        <div class="font-semibold text-rose-200">Set PIN dulu (wajib)</div>
+        <div class="text-slate-300 text-sm mt-1">PIN untuk decrypt nama/mime dan download file asli.</div>
+        <div class="flex gap-2 mt-3">
+          <input id="pinSet" class="rounded-xl bg-slate-900/60 border border-slate-700 p-2 w-48" placeholder="PIN 4-10 digit">
+          <button id="btnSetPin" class="rounded-xl bg-emerald-500 hover:bg-emerald-400 transition px-4">Simpan</button>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+        <div class="flex gap-2">
+          <input id="pin" type="password" class="rounded-xl bg-slate-900/60 border border-slate-700 p-2 w-56" placeholder="PIN (untuk decrypt)">
+          <button id="btnLoad" class="rounded-xl bg-sky-500 hover:bg-sky-400 transition px-4">Load</button>
+        </div>
+        <div class="flex gap-2">
+          <input id="file" type="file" class="rounded-xl bg-slate-900/60 border border-slate-700 p-2 w-full md:w-auto">
+          <button id="btnUpload" class="rounded-xl bg-emerald-500 hover:bg-emerald-400 transition px-4">
+            <i class="ri-upload-2-line"></i> Upload
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <div id="list" class="space-y-2"></div>
+      </div>
+
+      <div id="previewBox" class="mt-6 hidden">
+        <div class="font-semibold mb-2">Preview</div>
+        <div class="card rounded-2xl p-4">
+          <img id="previewImg" class="max-h-[420px] rounded-xl hidden" />
+          <div id="previewInfo" class="text-slate-300 text-sm"></div>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>
