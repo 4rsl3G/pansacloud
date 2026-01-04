@@ -128,7 +128,7 @@
   <script src="/public/js/crypto.pc.js"></script>
 
   <!-- SPA + Overlay control only when logged in -->
-  <% if (sessionUser) { %>
+
     <script src="/public/js/app.js"></script>
     <script>
       // Mobile drawer controls
@@ -142,7 +142,7 @@
       // Close drawer on navigation
       $(document).on("click", "a[data-nav='1']", closeDrawer);
     </script>
-  <% } %>
+  
 
   <!-- Page-specific JS -->
   <% if (page === "files") { %><script src="/public/js/files.js"></script><% } %>
