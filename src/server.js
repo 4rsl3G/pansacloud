@@ -65,9 +65,10 @@ app.use(
 );
 
 // SPA nav flag + locals
-app.use((req, res, next) => {
+app.use((req,res,next)=>{
   res.locals.isAjaxNav = req.get("X-PANSACLOUD-NAV") === "1";
-  res.locals.sessionUser = req.session?.user || null;
+  res.locals.sessionUser = req.session.user || null;
+  res.locals.path = req.path;
   next();
 });
 
