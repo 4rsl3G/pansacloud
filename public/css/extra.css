@@ -1,0 +1,11 @@
+.pc-spin{animation:pcspin 1s linear infinite}
+@keyframes pcspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.pc-pulse{animation:pcpulse 1.2s ease-in-out infinite}
+@keyframes pcpulse{0%,100%{opacity:.55}50%{opacity:1}}
+.pc-card{animation:pcfloat 2.2s ease-in-out infinite}
+@keyframes pcfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+.pc-nav{display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;border-radius:14px;color:#cbd5e1}
+.pc-nav:hover{background:rgba(30,41,59,.6);color:#fff;transform:translateX(2px);transition:.15s}
+
+.card{backdrop-filter:blur(10px);background:rgba(15,23,42,.55);border:1px solid rgba(148,163,184,.18)}
