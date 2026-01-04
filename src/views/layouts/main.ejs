@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title><%= title || "PansaCloud" %></title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
+  <link rel="stylesheet" href="/public/css/extra.css"/>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+</head>
+
+<body class="min-h-screen bg-slate-950 text-slate-100" style="font-family:'Plus Jakarta Sans',sans-serif">
+  <%- include('../partials/overlay') %>
+
+  <% if (!sessionUser) { %>
+    <div id="appMain"><%- body %></div>
+  <% } else { %>
+    <div class="min-h-screen flex">
+      <%- include('../partials/sidebar', { user: sessionUser }) %>
+      <main class="flex-1">
+        <div id="appMain"><%- body %></div>
+      </main>
+    </div>
+  <% } %>
+
+  <script src="/public/js/app.js"></script>
+  <script src="/public/js/crypto.pc.js"></script>
+
+  <% if (page === "files") { %><script src="/public/js/files.js"></script><% } %>
+  <% if (page === "dashboard") { %><script src="/public/js/dashboard.js"></script><% } %>
+  <% if (page === "security") { %><script src="/public/js/security.js"></script><% } %>
+  <% if (page === "profile") { %><script src="/public/js/profile.js"></script><% } %>
+  <% if (page === "admin-wa") { %><script src="/public/js/adminWa.js"></script><% } %>
+</body>
+</html>
