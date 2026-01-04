@@ -1,0 +1,224 @@
+/* =========================
+   PansaCloud Custom UI
+   ========================= */
+:root{
+  --pc-bg:#020617;            /* slate-950 */
+  --pc-card: rgba(15,23,42,.55);
+  --pc-border: rgba(148,163,184,.18);
+  --pc-text:#e2e8f0;          /* slate-200 */
+  --pc-muted:#94a3b8;         /* slate-400 */
+  --pc-accent:#38bdf8;        /* sky-400 */
+  --pc-accent2:#34d399;       /* emerald-400 */
+  --pc-danger:#fb7185;        /* rose-400 */
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family:'Plus Jakarta Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:var(--pc-bg);
+  color:var(--pc-text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* background decor */
+.pc-bg{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  overflow:hidden;
+}
+.pc-grid{
+  position:absolute;
+  inset:-2px;
+  background:
+    linear-gradient(to right, rgba(148,163,184,.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148,163,184,.06) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at 50% 25%, rgba(0,0,0,.9), transparent 60%);
+  opacity:.6;
+}
+.pc-blob{
+  position:absolute;
+  width:520px;
+  height:520px;
+  filter: blur(50px);
+  opacity:.22;
+  border-radius:999px;
+}
+.pc-blob-a{
+  left:-160px; top:-160px;
+  background: radial-gradient(circle at 30% 30%, var(--pc-accent), transparent 60%);
+  animation: pcFloatA 9s ease-in-out infinite;
+}
+.pc-blob-b{
+  right:-180px; bottom:-220px;
+  background: radial-gradient(circle at 30% 30%, var(--pc-accent2), transparent 60%);
+  animation: pcFloatB 10s ease-in-out infinite;
+}
+@keyframes pcFloatA { 0%,100%{ transform:translate(0,0);} 50%{ transform:translate(60px,40px);} }
+@keyframes pcFloatB { 0%,100%{ transform:translate(0,0);} 50%{ transform:translate(-70px,-35px);} }
+
+/* page wrappers */
+.pc-shell{
+  min-height:100vh;
+  display:flex;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pc-main{
+  flex:1;
+  min-width:0;
+  padding: 18px 18px 28px;
+}
+@media (min-width: 768px){
+  .pc-main{ padding: 22px 26px 34px; }
+}
+.pc-page{
+  min-height: calc(100vh - 56px);
+}
+
+/* topbar mobile */
+.pc-topbar{
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(12px);
+  background: rgba(2,6,23,.72);
+  border-bottom: 1px solid rgba(148,163,184,.14);
+}
+.pc-topbar-inner{
+  height: 56px;
+  padding: 0 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+/* Buttons */
+.pc-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+  padding:.65rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(148,163,184,.18);
+  transition: .15s;
+  font-weight: 600;
+}
+.pc-btn:hover{ transform: translateY(-1px); }
+.pc-btn:active{ transform: translateY(0); }
+
+.pc-btn-soft{
+  background: rgba(30,41,59,.55);
+}
+.pc-btn-soft:hover{
+  background: rgba(30,41,59,.85);
+}
+
+.pc-iconbtn{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background: rgba(30,41,59,.45);
+  border: 1px solid rgba(148,163,184,.16);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:.15s;
+}
+.pc-iconbtn:hover{ background: rgba(30,41,59,.75); transform: translateY(-1px); }
+.pc-iconbtn:active{ transform: translateY(0); }
+
+/* Cards */
+.pc-cardx,
+.card{
+  background: var(--pc-card);
+  border: 1px solid var(--pc-border);
+  border-radius: 18px;
+  backdrop-filter: blur(12px);
+}
+.pc-shadow{
+  box-shadow: 0 12px 50px rgba(0,0,0,.35);
+}
+
+/* Inputs */
+.pc-input{
+  width:100%;
+  border-radius: 14px;
+  padding: .8rem .9rem;
+  border: 1px solid rgba(148,163,184,.22);
+  background: rgba(2,6,23,.55);
+  color: var(--pc-text);
+  outline: none;
+  transition: .15s;
+}
+.pc-input::placeholder{ color: rgba(148,163,184,.75); }
+.pc-input:focus{
+  border-color: rgba(56,189,248,.6);
+  box-shadow: 0 0 0 3px rgba(56,189,248,.18);
+}
+
+/* Sidebar Nav class (works with your sidebar.ejs too) */
+.pc-nav{
+  display:flex;
+  align-items:center;
+  gap:.65rem;
+  padding:.72rem .9rem;
+  border-radius: 14px;
+  color: #cbd5e1;
+  transition: .15s;
+}
+.pc-nav i{ font-size: 18px; opacity:.95; }
+.pc-nav:hover{
+  background: rgba(30,41,59,.65);
+  color: #fff;
+  transform: translateX(2px);
+}
+
+/* Drawer mobile */
+.pc-drawer{
+  position:fixed;
+  inset:0;
+  z-index: 60;
+  display:none;
+}
+.pc-drawer.open{ display:block; }
+.pc-drawer-backdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(2,6,23,.78);
+  backdrop-filter: blur(8px);
+}
+.pc-drawer-panel{
+  position:absolute;
+  top: env(safe-area-inset-top);
+  bottom: 0;
+  left: 0;
+  width: min(82vw, 340px);
+  background: rgba(2,6,23,.92);
+  border-right: 1px solid rgba(148,163,184,.18);
+  transform: translateX(-10px);
+  animation: pcSlideIn .18s ease-out forwards;
+}
+@keyframes pcSlideIn{ to{ transform: translateX(0);} }
+
+/* Toastr look (dark) */
+#toast-container > .toast{
+  background: rgba(15,23,42,.92);
+  border: 1px solid rgba(148,163,184,.18);
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+}
+#toast-container > .toast-success{ border-left: 4px solid var(--pc-accent2); }
+#toast-container > .toast-error{ border-left: 4px solid var(--pc-danger); }
+#toast-container > .toast-warning{ border-left: 4px solid #fbbf24; }
+#toast-container > .toast-info{ border-left: 4px solid var(--pc-accent); }
+
+/* Reduce motion support */
+@media (prefers-reduced-motion: reduce){
+  *{ animation:none !important; transition:none !important; }
+}
