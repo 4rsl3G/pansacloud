@@ -18,10 +18,14 @@
     </div>
 
     <div class="mt-4 flex items-center gap-3">
-      <button id="btnReg" class="pc-btn w-40 bg-sky-600 border-transparent hover:bg-sky-500">
+      <button id="btnReg" class="pc-btn pc-btn-primary w-44">
         <i class="ri-user-add-line"></i> Register
       </button>
       <a href="/login" class="text-slate-300 hover:text-white underline underline-offset-4">Login</a>
+    </div>
+
+    <div class="mt-5 text-xs text-slate-400">
+      Nomor HP dipakai untuk sinkron akses WhatsApp bot (hanya user terdaftar yang direspon).
     </div>
   </div>
 </div>
@@ -35,7 +39,6 @@ async function doRegister(){
 
   if(!name || !email || !phone_e164 || !password) return toastr.warning("Semua field wajib diisi");
 
-  // overlay cuma dipakai kalau app.js tidak jalan di auth (layout final yang aku kasih)
   $("#pcOverlay").removeClass("hidden");
 
   try{
@@ -46,7 +49,11 @@ async function doRegister(){
       data: JSON.stringify({ name,email,phone_e164,password })
     });
 
-    if(!r.ok) return toastr.error(r.msg||"Register gagal");
+    if(!r.ok){
+      toastr.error(r.msg||"Register gagal");
+      return;
+    }
+
     toastr.success(r.msg||"Register berhasil");
     location.href = r.redirect || "/login";
   }catch(e){
