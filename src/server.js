@@ -17,8 +17,13 @@ import { adminRouter } from "./routes/admin.routes.js";
 import { startWa } from "./wa/waClient.js";
 
 dotenv.config();
+
 const app = express();
+
+// security headers
 app.use(helmet());
+
+// body parsers
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -28,35 +33,57 @@ app.set("views", path.resolve("views"));
 app.use(expressLayouts);
 app.set("layout", "layouts/main");
 
-// public
+// static
 app.use("/public", express.static(path.resolve("public")));
 
-// session store mysql
-const MySQLStore = MySQLStoreFactory(session);
-const sessionStore = new MySQLStore({}, pool);
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: sessionStore,
-  cookie: { httpOnly: true, sameSite: "lax" }
-}));
+// session store (MySQL)
+const MySQLStore = MySQLSessionFactory(session);
+
+const sessionStore = new MySQLStore(
+  {
+    clearExpired: true,
+    checkExpirationInterval: 15 * 60 * 1000, // 15 menit
+    expiration: 7 * 24 * 60 * 60 * 1000,     // 7 hari
+    // schema: { tableName: 'sessions' } // optional (default "sessions")
+  },
+  pool
+);
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: sessionStore,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      // secure: true, // aktifkan kalau sudah pakai HTTPS
+      // maxAge: 7 * 24 * 60 * 60 * 1000
+    },
+  })
+);
 
 // SPA nav flag + locals
-app.use((req,res,next)=>{
+app.use((req, res, next) => {
   res.locals.isAjaxNav = req.get("X-PANSACLOUD-NAV") === "1";
-  res.locals.sessionUser = req.session.user || null;
+  res.locals.sessionUser = req.session?.user || null;
   next();
 });
 
-app.get("/", (req,res)=> req.session.user ? res.redirect("/dashboard") : res.redirect("/login"));
+// home
+app.get("/", (req, res) =>
+  req.session?.user ? res.redirect("/dashboard") : res.redirect("/login")
+);
 
+// routes
 app.use(authRouter);
 app.use(dashboardRouter);
 app.use(filesRouter);
 app.use(downloadRouter);
 app.use(adminRouter);
 
+// server + socket
 const server = http.createServer(app);
 const io = new Server(server);
 
@@ -64,7 +91,7 @@ io.on("connection", (socket) => {
   socket.emit("wa:status", { status: "waiting" });
 });
 
-server.listen(Number(process.env.PORT||3001), async ()=>{
+server.listen(Number(process.env.PORT || 3001), async () => {
   await startWa(io, process.env.WA_SESSION_NAME || "main");
   console.log("PansaCloud:", process.env.APP_BASE_URL);
 });
