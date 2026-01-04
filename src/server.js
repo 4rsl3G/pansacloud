@@ -4,7 +4,7 @@ import path from "path";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import session from "express-session";
-import MySQLStoreFactory from "connect-mysql2";
+import MySQLSessionFactory from "express-mysql2-session";
 import expressLayouts from "express-ejs-layouts";
 import { Server } from "socket.io";
 
