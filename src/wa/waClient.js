@@ -1,4 +1,4 @@
-import makeWASocket, { DisconnectReason, fetchLatestBaileysVersion, jidNormalizedUser } from "@whiskeysockets/baileys";
+import makeWASocket, { DisconnectReason, fetchLatestBaileysVersion, jidNormalizedUser } from "baileys";
 import { Boom } from "@hapi/boom";
 import { pool } from "../db.js";
 import { useMysqlAuthState } from "./authStateMysql.js";
